@@ -30,7 +30,7 @@ from .dependencies import (
     TokenService,
     UserAccountService,
     role_required,
-    valid_access_token_data,
+    security_jwt_cookie,
     valid_refresh_token_data,
 )
 
@@ -167,11 +167,11 @@ async def change_credentials(
     change_credentials_dto: Annotated[ChangeCredentialsIn, Body()],
     user_account_service: UserAccountService,
     db_session: Annotated[AsyncSession, Depends(get_postgres_session)],
-    decoded_token: Annotated[dict, Depends(valid_access_token_data)],
+    user: Annotated[dict, Depends(security_jwt_cookie)],
 ):
     try:
         return await user_account_service.change_credentials(
-            session=db_session, account_id=decoded_token["account_id"], data=change_credentials_dto
+            session=db_session, account_id=user["account_id"], data=change_credentials_dto
         )
     except UserAlreadyExistError as e:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="User with same email already exists") from e
@@ -183,19 +183,21 @@ async def change_credentials(
 async def get_user_login_history(
     user_account_service: UserAccountService,
     db_session: Annotated[AsyncSession, Depends(get_postgres_session)],
-    decoded_token: Annotated[dict, Depends(valid_access_token_data)],
+    user: Annotated[dict, Depends(security_jwt_cookie)],
     pagination: PaginateQueryParams = Depends(),
 ):
     return await user_account_service.get_login_history(
         session=db_session,
-        account_id=decoded_token["account_id"],
+        account_id=user["account_id"],
         page_number=pagination.page_number,
         page_size=pagination.page_size,
     )
 
 
 @user_account_router.get(
-    "/{account_id}/roles", response_model=list[UserRole | None], dependencies=[Depends(role_required(Role.ADMIN))]
+    "/{account_id}/roles",
+    response_model=list[UserRole | None],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
 )
 async def get_user_roles(
     user_account_service: UserAccountService,
@@ -210,7 +212,7 @@ async def get_user_roles(
 @user_account_router.get(
     "/{account_id}/roles/{role_id}",
     response_model=None,
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Проверка наличия роли у пользователя",
     description="Доступ только для админской роли",
 )
@@ -230,7 +232,7 @@ async def check_have_user_role(
 @user_account_router.post(
     "/{account_id}/roles",
     response_model=list[UserRole],
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Добавление роли пользователю",
     description="Доступ только для админской роли",
 )
@@ -255,7 +257,7 @@ async def assign_user_role(
 @user_account_router.delete(
     "/{account_id}/roles/{role_id}",
     response_model=list[UserRole],
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Удаление роли у пользователя",
     description="Доступ только для админской роли",
 )

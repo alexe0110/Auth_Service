@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from api.v1.dependencies import RoleService, role_required
+from api.v1.dependencies import RoleService, role_required, security_jwt_cookie
 from db.postgres import AsyncSession, get_postgres_session
 from models.exceptions import RoleAlreadyExistError
 from models.roles import Role
@@ -17,11 +17,14 @@ role_router = APIRouter(prefix="/role", tags=["Role"])
 @role_router.get(
     "/",
     response_model=list[RoleSchema | None],
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Получить список всех ролей",
     description="Доступ только для админской роли",
 )
-async def get_all_roles(role_service: RoleService, db_session: Annotated[AsyncSession, Depends(get_postgres_session)]):
+async def get_all_roles(
+    role_service: RoleService,
+    db_session: Annotated[AsyncSession, Depends(get_postgres_session)],
+):
     result = await role_service.get_all_roles(session=db_session)
 
     return result
@@ -30,12 +33,14 @@ async def get_all_roles(role_service: RoleService, db_session: Annotated[AsyncSe
 @role_router.get(
     "/{role_id}",
     response_model=RoleSchema,
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Получить роль по id",
     description="Доступ только для админской роли",
 )
 async def get_role(
-    role_service: RoleService, db_session: Annotated[AsyncSession, Depends(get_postgres_session)], role_id: UUID
+    role_service: RoleService,
+    db_session: Annotated[AsyncSession, Depends(get_postgres_session)],
+    role_id: UUID,
 ):
     result = await role_service.get_role(session=db_session, role_id=role_id)
 
@@ -51,7 +56,7 @@ async def get_role(
 @role_router.post(
     "/",
     response_model=RoleSchema,
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Создавние новой роли",
     description="Доступ только для админской роли",
 )
@@ -71,7 +76,7 @@ async def create_role(
 @role_router.patch(
     "/{role_id}",
     response_model=RoleSchema,
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Обновление данных роли",
     description="Доступ только для админской роли",
 )
@@ -94,7 +99,7 @@ async def update_role(
 
 @role_router.delete(
     "/{role_id}",
-    dependencies=[Depends(role_required(Role.ADMIN))],
+    dependencies=[Depends(role_required(Role.ADMIN)), Depends(security_jwt_cookie)],
     summary="Удаление роли",
     description="Доступ только для админской роли",
 )

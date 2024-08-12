@@ -1,9 +1,14 @@
+import http
+import time
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import Cookie, Depends, HTTPException, Query
+import jwt
+from fastapi import Cookie, Depends, HTTPException, Query, Request
+from fastapi.security import APIKeyCookie
 from jwt import ExpiredSignatureError, PyJWTError
 
+from core.settings import settings
 from models.roles import Role
 from services.role import RoleService as _RoleService
 from services.role import get_role_service
@@ -28,22 +33,6 @@ async def valid_refresh_token_data(
     return decoded
 
 
-async def valid_access_token_data(
-    token_service: TokenService,
-    access_token: Annotated[str | None, Cookie(include_in_schema=False)],
-):
-    if not access_token:
-        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Authorization required") from None
-
-    try:
-        decoded = token_service.decode_token(access_token)
-    except ExpiredSignatureError as e:
-        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Authorization required") from e
-    except PyJWTError as e:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="Invalid Token") from e
-    return decoded
-
-
 def role_required(role: Role):
     def wrapper(
         access_token: Annotated[str, Cookie(include_in_schema=False)],
@@ -57,6 +46,35 @@ def role_required(role: Role):
             raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Forbidden") from None
 
     return wrapper
+
+
+def decode_token(token: str):
+    try:
+        decoded_token = jwt.decode(token, settings.api.JWT_SECRET_KEY, algorithms=["HS256"])
+        return decoded_token if decoded_token["exp"] >= time.time() else None
+    except Exception:
+        return None
+
+
+class JWTBearerCookie(APIKeyCookie):
+    def __init__(self, auto_error: bool = True):
+        super().__init__(name="access_token", auto_error=auto_error)
+
+    async def __call__(self, request: Request) -> dict:
+        cookie_token: str | None = await super().__call__(request)
+        if not cookie_token:
+            raise HTTPException(status_code=http.HTTPStatus.FORBIDDEN, detail="Missing authorization cookie.")
+        decoded_token = self.parse_token(cookie_token)
+        if not decoded_token:
+            raise HTTPException(status_code=http.HTTPStatus.FORBIDDEN, detail="Invalid or expired token.")
+        return decoded_token
+
+    @staticmethod
+    def parse_token(jwt_token: str) -> dict | None:
+        return decode_token(jwt_token)
+
+
+security_jwt_cookie = JWTBearerCookie()
 
 
 class PaginateQueryParams:
