@@ -1,0 +1,4 @@
+include:
+  - apps/auth/docker-compose.yml
+  - apps/movies/docker-compose.yml
+  - apps/etl/docker-compose.yml

@@ -1,3 +1,0 @@
-CODE = .
-
-include ../Makefile
