@@ -3,7 +3,7 @@ services:
     image: postgres:16.1
     restart: always
     env_file: 
-      - "./core/.env"
+      - ../.env
     ports:
       - "5433:5432"
     volumes:
@@ -12,8 +12,6 @@ services:
   auth-redis:
     image: redis:7.2.5
     restart: always
-    ports:
-      - "6380:6379"
     volumes:
       - auth-redis-data:/data/
     healthcheck:
@@ -25,22 +23,26 @@ services:
   auth-postgres-test:
     image: postgres:16.1
     restart: always
+    profiles:
+      - test
     env_file:
-      - "./core/.env"
+      - ../.env
     ports:
       - "5434:5432"
-  
+
   ms-auth:
     build:
       context: .
     env_file: 
-      - "./core/.env"
+      - ../.env
     depends_on:
       - auth-postgres
       - auth-redis
     restart: always
     command: uvicorn main:app --host=0.0.0.0 --port=8000
-  
+    ports:
+      - "8002:8000"
+
 volumes:
   auth-postgres-data:
     driver: local

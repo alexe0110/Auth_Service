@@ -9,7 +9,7 @@ DIR = Path(__file__).resolve(strict=True).parent
 
 
 class BaseSettings(PydanticBaseSettings):
-    model_config = SettingsConfigDict(env_file=DIR.joinpath("./.env"), case_sensitive=True, extra="allow")
+    model_config = SettingsConfigDict(env_file=DIR.joinpath("../../.env"), case_sensitive=True, extra="allow")
 
 
 class APISettings(BaseSettings):
@@ -25,7 +25,7 @@ class APISettings(BaseSettings):
     REFRESH_TOKEN_LIFETIME_SEC: int
 
     class Config:
-        env_prefix = "API_"
+        env_prefix = "AUTH_API_"
 
 
 class RedisSettings(BaseSettings):
@@ -35,7 +35,7 @@ class RedisSettings(BaseSettings):
     URL: str | None = None
 
     class Config:
-        env_prefix = "REDIS_"
+        env_prefix = "AUTH_REDIS_"
 
     @field_validator("URL", mode="before")
     @classmethod
@@ -63,7 +63,7 @@ class PostgresSettings(BaseSettings):
     URL: str | None = None
 
     class Config:
-        env_prefix = "POSTGRES_"
+        env_prefix = "AUTH_POSTGRES_"
 
     @field_validator("URL", mode="before")
     @classmethod
