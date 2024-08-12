@@ -1,8 +1,8 @@
 services:
   etl:
     build:
-      context: ./apps/etl
-    env_file: ./apps/.env
+      context: .
+    env_file: ../.env
     depends_on:
       - postgres
       - elastic

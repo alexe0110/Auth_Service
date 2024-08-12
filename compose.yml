@@ -2,3 +2,14 @@ include:
   - apps/auth/docker-compose.yml
   - apps/movies/docker-compose.yml
   - apps/etl/docker-compose.yml
+
+services:
+  nginx:
+    image: nginx:1.25.5
+    ports:
+      - "8001:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./apps/configs:/etc/nginx/conf.d:ro
+    depends_on:
+      - movies
