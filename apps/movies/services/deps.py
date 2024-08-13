@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from cache import RedisCache as _RedisCache
 from fastapi import Depends
+
+from cache import RedisCache as _RedisCache
 from storages.film import ElasticSearchFilmStorage as _ElasticSearchFilmStorage
 from storages.genre import ElasticSearchGenreStorage as _ElasticSearchGenreStorage
 from storages.person import ElasticPersonFilmStorage as _ElasticPersonFilmStorage

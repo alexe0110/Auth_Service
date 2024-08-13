@@ -2,11 +2,10 @@ from functools import lru_cache
 from uuid import UUID
 
 from cache import Cache, cached_method
-from storages.film import FilmStorage
-from storages.person import PersonStorage
-
 from models import Person, PersonFilm
 from services.deps import ElasticPersonFilmStorage, ElasticSearchFilmStorage, RedisCache
+from storages.film import FilmStorage
+from storages.person import PersonStorage
 
 
 class PersonService:

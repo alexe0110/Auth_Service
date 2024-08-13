@@ -6,8 +6,8 @@ class APISettings(BaseSettings):
     OPENAPI_URL: str = "/api/v1/public/openapi.json"
     DOCS_URL: str = "/api/v1/public/docs"
     REDOC_URL: str = "/api/v1/public/redoc"
-
     LOG_QUERIES: bool = False
+    API_JWT_SECRET_KEY: str
 
 
 api_settings = APISettings()

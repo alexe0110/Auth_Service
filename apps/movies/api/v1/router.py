@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from api.deps import security_jwt_cookie
 from api.v1.endpoints.film import router as film_router
 from api.v1.endpoints.genre import router as genre_router
 from api.v1.endpoints.person import router as person_router
 
-api_router = APIRouter(prefix="/api/v1")
+api_router = APIRouter(prefix="/api/v1", dependencies=[Depends(security_jwt_cookie)])
 
 
 api_router.include_router(film_router, prefix="/films", tags=["Films"])

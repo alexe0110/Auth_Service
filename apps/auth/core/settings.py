@@ -25,7 +25,7 @@ class APISettings(BaseSettings):
     REFRESH_TOKEN_LIFETIME_SEC: int
 
     class Config:
-        env_prefix = "AUTH_API_"
+        env_prefix = "API_"
 
 
 class RedisSettings(BaseSettings):
