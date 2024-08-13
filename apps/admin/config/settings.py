@@ -72,3 +72,10 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+
+AUTH_USER_MODEL = "auth.User"
+
+AUTHENTICATION_BACKENDS = [
+    'auth.backend.CustomBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
+]
