@@ -25,3 +25,23 @@
 
 ---
 
+Первый запуск
+Админка
+1. Создайте папку для volume dbs
+2. Запустить БД `docker compose up postgres -d` 
+3. Миграции джанги `make migrate` или `python manage.py migrate`
+4. Создайте суперпользователя `make createsuperuser` или `python manage.py createsuperuser`
+5. Запустить остальные сервисы `docker compose up -d`
+
+
+
+### Линтеры
+
+   make plint
+   
+
+## Запуск админки 
+
+    make migrate
+    make createsuperuser
+    make run

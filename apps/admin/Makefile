@@ -16,3 +16,10 @@ plint:
 	ruff format $(CODE)
 	ruff check $(CODE) --fix --show-fixes
 
+migrate:
+	psql -h 127.0.0.1 -U app -d movies_database -c 'CREATE SCHEMA IF NOT EXISTS content;'
+	$(VENV)/bin/python manage.py migrate
+
+
+createsuperuser:
+	$(VENV)/bin/python manage.py createsuperuser
