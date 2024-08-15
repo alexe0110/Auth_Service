@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.12
 
 WORKDIR /opt/app
 
@@ -6,10 +6,12 @@ ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE 'config.settings'
 
 
-COPY requirements requirements
+RUN apt update && pip install --upgrade pip
+COPY pyproject.toml poetry.lock /opt/app/
 
-RUN  pip install --upgrade pip \
-     && pip install -r requirements
+RUN pip install --no-compile poetry \
+ && poetry config virtualenvs.create false \
+ && poetry install --no-interaction --no-ansi
 
 COPY . .
 

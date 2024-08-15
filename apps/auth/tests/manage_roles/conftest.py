@@ -20,7 +20,7 @@ def _admin_auth(db_session: Session, client: TestClient, fake: Faker) -> Cookies
     )
 
     result = client.post(
-        "/api/v1/account/login",
+        "/auth/api/v1/account/login",
         json={
             "email": "admin@ya.ru",
             "password": "qwerty",

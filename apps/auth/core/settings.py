@@ -14,9 +14,9 @@ class BaseSettings(PydanticBaseSettings):
 
 class APISettings(BaseSettings):
     TITLE: str = "auth-service"
-    OPENAPI_URL: str = "/public/openapi.json"
-    DOCS_URL: str = "/public/docs"
-    REDOC_URL: str = "/public/redoc"
+    OPENAPI_URL: str = "/auth/api/v1/public/openapi.json"
+    DOCS_URL: str = "/auth/api/v1/public/docs"
+    REDOC_URL: str = "/auth/api/v1/public/redoc"
 
     LOG_QUERIES: bool = False
 

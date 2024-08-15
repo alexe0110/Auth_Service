@@ -11,9 +11,4 @@ services:
 
 volumes:
   etl_data:
-    name: etl_data
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./dbs/etl-data

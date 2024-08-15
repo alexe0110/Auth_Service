@@ -9,7 +9,7 @@ from main import app
 
 dsn = (
     f"postgresql+asyncpg://{settings.postgres.USER}:{settings.postgres.PASSWORD}"
-    f"@{settings.postgres.HOST}:5434/{settings.postgres.DB}"
+    f"@localhost:5434/{settings.postgres.DB}"
 )
 
 engine: AsyncEngine = create_async_engine(dsn, poolclass=NullPool)
@@ -29,7 +29,7 @@ async def override_get_session():
 
 
 def override_get_redis():
-    return Redis(host=settings.redis.HOST, port=settings.redis.PORT, db=1)
+    return Redis(host="localhost", port=6380)
 
 
 app.dependency_overrides[get_postgres_session] = override_get_session

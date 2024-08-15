@@ -25,7 +25,7 @@ _Пример использования:_
 ### Тесты
 Поднять БД для тестов, она будет на порту 5434
 
-    docker compose up postgres-test -d
+    docker compose up auth-postgres-test auth-redis-test -d
 
 Запустить pytest тесты любым удобным способом
 

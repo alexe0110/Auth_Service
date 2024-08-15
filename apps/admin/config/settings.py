@@ -16,7 +16,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from split_settings.tools import include
 
-load_dotenv()
+load_dotenv(dotenv_path="../.env")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 include(
     "components/installed_apps.py",
@@ -39,7 +40,7 @@ include(
 # DEBUG=True
 DEBUG = os.environ.get("DEBUG", False)
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 ROOT_URLCONF = "config.urls"
 
@@ -59,6 +60,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -73,9 +76,8 @@ INTERNAL_IPS = [
     # ...
 ]
 
-AUTH_USER_MODEL = "auth.User"
+AUTH_USER_MODEL = "movies.User"
 
 AUTHENTICATION_BACKENDS = [
-    'auth.backend.CustomBackend',
-    # 'django.contrib.auth.backends.ModelBackend',
+    "movies.backend.CustomBackend",
 ]

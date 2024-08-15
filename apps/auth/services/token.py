@@ -42,6 +42,7 @@ class TokenService:
                 value=access_token,
             )
         except Exception as e:
+            print("\n\n\t ERROR", e)
             raise GenerateTokensError from e
 
         return access_token, refresh_token

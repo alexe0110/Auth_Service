@@ -19,7 +19,7 @@ from models import Role, Roles, UserAccount, UserAuth, UserLoginHistory, UserRol
 
 test_dsn = (
     f"postgresql+psycopg2://{settings.postgres.USER}:{settings.postgres.PASSWORD}"
-    f"@{settings.postgres.HOST}:5434/{settings.postgres.DB}"
+    f"@localhost:5434/{settings.postgres.DB}"
 )
 engine: Engine = create_engine(test_dsn)
 

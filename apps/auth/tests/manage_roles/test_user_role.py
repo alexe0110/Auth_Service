@@ -9,7 +9,7 @@ class TestUserRoleCreate:
         created_user_account_id = add_user
         created_role_id = add_role
 
-        result = client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        result = client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -18,7 +18,7 @@ class TestUserRoleCreate:
         assert result_dict[0].get("user_account_id") == created_user_account_id
         assert result_dict[0].get("role_id") == created_role_id
 
-        result = client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        result = client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.CONFLICT
@@ -28,7 +28,7 @@ class TestUserRoleCreate:
         created_user_account_id = str(uuid.uuid4())
         created_role_id = add_role
 
-        result = client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        result = client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.NOT_FOUND
@@ -38,7 +38,7 @@ class TestUserRoleCreate:
         created_user_account_id = add_user
         created_role_id = str(uuid.uuid4())
 
-        result = client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        result = client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.NOT_FOUND
@@ -50,9 +50,9 @@ class TestUserRoleDelete:
         created_user_account_id = add_user
         created_role_id = add_role
 
-        client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
 
-        result = client.delete(f"/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
+        result = client.delete(f"/auth/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -62,7 +62,7 @@ class TestUserRoleDelete:
         created_user_account_id = add_user
         created_role_id = add_role
 
-        result = client.delete(f"/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
+        result = client.delete(f"/auth/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.NOT_FOUND
@@ -74,9 +74,9 @@ class TestGetUserRoles:
         created_user_account_id = add_user
         created_role_id = add_role
 
-        client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
 
-        result = client.get(f"/api/v1/account/{created_user_account_id}/roles")
+        result = client.get(f"/auth/api/v1/account/{created_user_account_id}/roles")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -85,7 +85,7 @@ class TestGetUserRoles:
     def test_get_user_roles_not_exists_roles(self, client: TestClient, add_user):
         created_user_account_id = add_user
 
-        result = client.get(f"/api/v1/account/{created_user_account_id}/roles")
+        result = client.get(f"/auth/api/v1/account/{created_user_account_id}/roles")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -97,9 +97,9 @@ class TestCheckUserRole:
         created_user_account_id = add_user
         created_role_id = add_role
 
-        client.post(f"/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
+        client.post(f"/auth/api/v1/account/{created_user_account_id}/roles", json=[created_role_id])
 
-        result = client.get(f"/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
+        result = client.get(f"/auth/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
 
         assert result.status_code == HTTPStatus.NO_CONTENT
         assert result.text == ""
@@ -108,7 +108,7 @@ class TestCheckUserRole:
         created_user_account_id = add_user
         created_role_id = add_role
 
-        result = client.get(f"/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
+        result = client.get(f"/auth/api/v1/account/{created_user_account_id}/roles/{created_role_id}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.NOT_FOUND
