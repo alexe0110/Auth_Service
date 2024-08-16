@@ -1,0 +1,57 @@
+services:
+  auth-postgres:
+    image: postgres:16.1
+    restart: always
+    environment:
+      - POSTGRES_DB=ms-auth
+      - POSTGRES_USER=ms-auth-user
+      - POSTGRES_PASSWORD=ms-auth-password
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+
+  auth-redis:
+    image: redis:7.2.5
+    restart: always
+    volumes:
+      - auth-redis-data:/data/
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 2s
+      timeout: 60s
+      retries: 5
+
+  auth-postgres-test:
+    image: postgres:16.1
+    restart: always
+    profiles:
+      - test
+    environment:
+      - POSTGRES_DB=ms-auth
+      - POSTGRES_USER=ms-auth-user
+      - POSTGRES_PASSWORD=ms-auth-password
+    ports:
+      - "5434:5432"
+
+  auth-redis-test:
+    image: redis:7.2.5
+    profiles:
+      - test
+    ports:
+      - "6380:6379"
+
+  ms-auth:
+    build:
+      context: .
+    env_file: 
+      - ../.env
+    depends_on:
+      - auth-postgres
+      - auth-redis
+    restart: always
+    command: uvicorn main:app --host=0.0.0.0 --port=8000
+
+volumes:
+  auth-postgres-data:
+    driver: local
+  auth-redis-data:
+    driver: local
