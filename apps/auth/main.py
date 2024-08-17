@@ -1,17 +1,13 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
-from fastapi import FastAPI
-
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from api import api_router
 from core.settings import settings
@@ -27,16 +23,6 @@ async def lifespan(_: FastAPI):
     await postgres.close_postgres_connection()
 
 
-def configure_tracer() -> None:
-    jaeger_exporter = JaegerExporter(agent_host_name=settings.jaeger.HOST, agent_port=settings.jaeger.PORT)
-    trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME: "auth-service"})))
-    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaeger_exporter))
-    # Чтобы видеть трейсы в консоли
-    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
-
-
-configure_tracer()
-
 app = FastAPI(
     title=settings.api.TITLE,
     docs_url=settings.api.DOCS_URL,
@@ -44,9 +30,16 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
-
 app.include_router(api_router)
 
+
+def configure_tracer() -> None:
+    jaeger_exporter = JaegerExporter(agent_host_name=settings.jaeger.HOST, agent_port=settings.jaeger.PORT)
+    trace.set_tracer_provider(TracerProvider(resource=Resource.create({SERVICE_NAME: "auth-service"})))
+    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaeger_exporter))
+
+
+configure_tracer()
 FastAPIInstrumentor.instrument_app(app)
 
 
