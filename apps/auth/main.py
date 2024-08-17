@@ -12,7 +12,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from api import api_router
 from core.settings import settings
 from db import postgres, redis
-from rate import check_limit
+from rate_limiter import check_limit
 
 
 @asynccontextmanager
