@@ -44,11 +44,19 @@ services:
       context: .
     env_file: 
       - ../.env
+    ports:
+      - "8002:8000"
     depends_on:
       - auth-postgres
       - auth-redis
     restart: always
     command: uvicorn main:app --host=0.0.0.0 --port=8000
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
 
 volumes:
   auth-postgres-data:
