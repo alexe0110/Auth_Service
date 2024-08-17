@@ -12,6 +12,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from api import api_router
 from core.settings import settings
 from db import postgres, redis
+from rate import check_limit
 
 
 @asynccontextmanager
@@ -46,8 +47,15 @@ FastAPIInstrumentor.instrument_app(app)
 @app.middleware("http")
 async def before_request(request: Request, call_next):
     request_id = request.headers.get("X-Request-Id")
+    user_id = request.headers.get("X-Forwarded-For")
+
+    overage = await check_limit(user_id=user_id)
+    if overage:
+        return ORJSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": "Too many requests"})
+
     if not request_id:
         return ORJSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "X-Request-Id is required"})
+
     tracer: trace.Tracer = trace.get_tracer(__name__)
     with tracer.start_as_current_span("auth-api") as span:
         span.set_attribute("http.request_id", request_id)

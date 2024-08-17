@@ -24,6 +24,8 @@ class APISettings(BaseSettings):
     ACCESS_TOKEN_LIFETIME_SEC: int
     REFRESH_TOKEN_LIFETIME_SEC: int
 
+    RPM_LIMIT: int
+
     class Config:
         env_prefix = "API_"
 
