@@ -18,5 +18,4 @@ async def check_limit(user_id: str) -> bool:
     result = await pipe.execute()
     request_number = result[0]
 
-    if request_number > settings.api.RPM_LIMIT:
-        return True
+    return request_number > settings.api.RPM_LIMIT
