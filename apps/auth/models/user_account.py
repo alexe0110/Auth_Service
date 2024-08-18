@@ -3,12 +3,29 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import UniqueConstraint, text
 
 from db.postgres import Base
 
 
+def create_partition(target, connection, **kw) -> None:
+    connection.execute(
+        text("""CREATE TABLE IF NOT EXISTS "user_account_male" PARTITION OF "user_account" FOR VALUES IN ('male')""")
+    )
+    connection.execute(
+        text("""CREATE TABLE IF NOT EXISTS "user_account_female" PARTITION OF "user_account" FOR VALUES IN ('female')""")
+    )
+
+
 class UserAccount(Base):
     __tablename__ = "user_account"
+    __table_args__ = (
+        UniqueConstraint('id', 'gender'),
+        {
+            'postgresql_partition_by': 'LIST (gender)',
+            'listeners': [('after_create', create_partition)],
+        }
+    )
 
     id: Mapped[UUID] = mapped_column(
         primary_key=True, nullable=False, unique=True, server_default=sa.text("gen_random_uuid()")

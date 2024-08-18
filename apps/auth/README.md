@@ -7,7 +7,13 @@
 > Описать энвы в `core/.env`
 
 ### Миграции
-    ...
+Применить
+
+    alembic upgrade head
+Создать новые
+    
+    alembic revision -m "name"
+    <заполнить вручнуную>
 
 ### Запуск 
     fastapi dev
