@@ -26,6 +26,8 @@ class APISettings(BaseSettings):
     YANDEX_OAUTH_CLIENT_ID: str
     YANDEX_OAUTH_CLIENT_SECRET: str
 
+    RPM_LIMIT: int
+
     class Config:
         env_prefix = "API_"
 
@@ -83,10 +85,19 @@ class PostgresSettings(BaseSettings):
         ).unicode_string()
 
 
+class JaegerSettings(BaseSettings):
+    HOST: str
+    PORT: int
+
+    class Config:
+        env_prefix = "JAEGER_"
+
+
 class Settings(BaseSettings):
     api: APISettings = APISettings()  # type: ignore
     redis: RedisSettings = RedisSettings()  # type: ignore
     postgres: PostgresSettings = PostgresSettings()  # type: ignore
+    jaeger: JaegerSettings = JaegerSettings()
 
 
 settings = Settings()
