@@ -57,3 +57,13 @@ class UserAccountLoginHistorySchema(PydanticBase):
 
 class UserAccountLoginHistoryOut(UserAccountLoginHistorySchema, ToCamelCase):
     pass
+
+
+class LoginUserViaExternalProviderSchema(PydanticBase):
+    id: str
+    email: str
+    first_name: str
+    last_name: str
+    middle_name: str | None = None
+    gender: Literal["male", "female"]
+    birthdate: date

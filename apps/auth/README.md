@@ -36,4 +36,4 @@ _Пример использования:_
     pytest --cov=. tests/
 
 ## Ссылка на репозиторий
-https://github.com/NikFedoseev/Auth_sprint_1
+https://github.com/NikFedoseev/Auth_sprint_2

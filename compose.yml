@@ -16,3 +16,4 @@ services:
     depends_on:
       - movies
       - admin_panel
+      - ms-auth

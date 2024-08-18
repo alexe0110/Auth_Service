@@ -14,15 +14,17 @@ class BaseSettings(PydanticBaseSettings):
 
 class APISettings(BaseSettings):
     TITLE: str = "auth-service"
-    OPENAPI_URL: str = "/auth/api/v1/public/openapi.json"
-    DOCS_URL: str = "/auth/api/v1/public/docs"
-    REDOC_URL: str = "/auth/api/v1/public/redoc"
+    OPENAPI_URL: str = "/api/v1/public/openapi.json"
+    DOCS_URL: str = "/api/v1/public/docs"
+    REDOC_URL: str = "/api/v1/public/redoc"
 
     LOG_QUERIES: bool = False
 
     JWT_SECRET_KEY: str
     ACCESS_TOKEN_LIFETIME_SEC: int
     REFRESH_TOKEN_LIFETIME_SEC: int
+    YANDEX_OAUTH_CLIENT_ID: str
+    YANDEX_OAUTH_CLIENT_SECRET: str
 
     class Config:
         env_prefix = "API_"

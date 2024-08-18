@@ -11,7 +11,7 @@ from tests.utils import check_jwt_tokens
 class TestLogin:
     def test_login(self, client: TestClient, email, password):
         result = client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": password,
@@ -27,7 +27,7 @@ class TestLogin:
 
     def test_login_user_wrong_password(self, client: TestClient, email):
         result = client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": "fake_password",
@@ -47,7 +47,7 @@ class TestLogout:
     @pytest.mark.parametrize(("email", "password"), [("test_email@yandex.ru", "qwerty")])
     def test_logout(self, client: TestClient, email, password):
         auth_result = client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": password,
@@ -55,7 +55,7 @@ class TestLogout:
         )
 
         result = client.post(
-            "/auth/api/v1/account/logout", cookies={"refresh_token": auth_result.cookies.get("refresh_token")}
+            "/api/v1/account/logout", cookies={"refresh_token": auth_result.cookies.get("refresh_token")}
         )
 
         assert result.status_code == HTTPStatus.NO_CONTENT
@@ -65,7 +65,7 @@ class TestLogout:
         assert not result.cookies.get("refresh_token")
 
     def test_logout_unauthorized(self, client: TestClient):
-        result = client.post("/auth/api/v1/account/logout")
+        result = client.post("/api/v1/account/logout")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.UNAUTHORIZED
@@ -77,7 +77,7 @@ class TestRefreshToken:
     @pytest.mark.parametrize(("email", "password"), [("test_email@yandex.ru", "qwerty")])
     def test_refresh_token(self, client: TestClient, email, password):
         auth_result = client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": password,
@@ -86,7 +86,7 @@ class TestRefreshToken:
         account_id = auth_result.json().get("id")
 
         result = client.get(
-            "/auth/api/v1/account/refresh_tokens", cookies={"refresh_token": auth_result.cookies.get("refresh_token")}
+            "/api/v1/account/refresh_tokens", cookies={"refresh_token": auth_result.cookies.get("refresh_token")}
         )
 
         assert result.status_code == HTTPStatus.NO_CONTENT
@@ -101,14 +101,14 @@ class TestLoginHistory:
     def test_login_history(self, client: TestClient, email, password):
         for _ in range(5):
             client.post(
-                "/auth/api/v1/account/login",
+                "/api/v1/account/login",
                 json={
                     "email": email,
                     "password": password,
                 },
             )
 
-        result = client.get("/auth/api/v1/account/login_history")
+        result = client.get("/api/v1/account/login_history")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK

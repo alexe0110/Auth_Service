@@ -32,3 +32,7 @@ class InvalidCredentialsError(Exception):
 
 class UserNotExistsError(Exception):
     msg = "User not exists"
+
+
+class UnknownExternalProviderError(Exception):
+    msg = "Unknown external auth provider"

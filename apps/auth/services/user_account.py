@@ -2,37 +2,31 @@ from functools import lru_cache
 from uuid import UUID
 
 from db.postgres import AsyncSession
+from models.user_auth import ExternalAuthProviderEnum
 from repositories.account import UserAccountRepository
 from schemas.user_account import (
     ChangeCredentialsIn,
     LoginUserIn,
+    LoginUserViaExternalProviderSchema,
     RegisterUserIn,
     UserAccountLoginHistorySchema,
     UserAccountSchema,
 )
 from schemas.user_roles import UserRole
 
-from .dependencies import PostgresUserAccountRepository
+from .dependencies import PostgresUserAccountRepository, YandexHTTPClient
 
 
 class UserAccountService:
-    def __init__(self, account_repository: UserAccountRepository) -> None:
+    def __init__(self, account_repository: UserAccountRepository, yandex_http_client: YandexHTTPClient) -> None:
         self.account_repository = account_repository
+        self.yandex_http_client = yandex_http_client
 
     async def register(self, session: AsyncSession, data: RegisterUserIn, user_agent: str) -> UserAccountSchema:
         account = await self.account_repository.create_account(session=session, data=data)
         await self.account_repository.create_login_history(session=session, account=account, user_agent=user_agent)
 
-        return UserAccountSchema(
-            id=account.id,
-            email=account.internal_auth_data.email,
-            last_name=account.last_name,
-            first_name=account.first_name,
-            middle_name=account.middle_name,
-            gender=account.gender,
-            birthdate=account.birthdate,
-            roles=account.roles,
-        )
+        return UserAccountSchema.model_validate(account, from_attributes=True)
 
     async def login(self, session: AsyncSession, data: LoginUserIn, user_agent: str) -> UserAccountSchema:
         auth_data = await self.account_repository.verify_credentials(session=session, data=data)
@@ -40,30 +34,12 @@ class UserAccountService:
             session=session, account=auth_data.account, user_agent=user_agent
         )
 
-        return UserAccountSchema(
-            id=auth_data.account.id,
-            email=auth_data.email,
-            last_name=auth_data.account.last_name,
-            first_name=auth_data.account.first_name,
-            middle_name=auth_data.account.middle_name,
-            gender=auth_data.account.gender,
-            birthdate=auth_data.account.birthdate,
-            roles=auth_data.account.roles,
-        )
+        return UserAccountSchema.model_validate(auth_data.account, from_attributes=True)
 
     async def get_by_id(self, session: AsyncSession, account_id: str):
         account = await self.account_repository.get_by_id(session=session, account_id=account_id)
 
-        return UserAccountSchema(
-            id=account.id,
-            email=account.internal_auth_data.email,
-            last_name=account.last_name,
-            first_name=account.first_name,
-            middle_name=account.middle_name,
-            gender=account.gender,
-            birthdate=account.birthdate,
-            roles=account.roles,
-        )
+        return UserAccountSchema.model_validate(account, from_attributes=True)
 
     async def change_credentials(
         self, session: AsyncSession, account_id: str, data: ChangeCredentialsIn
@@ -72,16 +48,7 @@ class UserAccountService:
             session=session, account_id=account_id, email=data.email, password=data.password
         )
 
-        return UserAccountSchema(
-            id=account.id,
-            email=account.internal_auth_data.email,
-            last_name=account.last_name,
-            first_name=account.first_name,
-            middle_name=account.middle_name,
-            gender=account.gender,
-            birthdate=account.birthdate,
-            roles=account.roles,
-        )
+        return UserAccountSchema.model_validate(account, from_attributes=True)
 
     async def assign_user_role(self, session: AsyncSession, role_ids: list[UUID], account_id: UUID) -> list[UserRole]:
         await self.account_repository.role_assigment(session, role_ids, account_id)
@@ -109,9 +76,35 @@ class UserAccountService:
             for item in login_history
         ]
 
+    async def login_via_yandex(self, session: AsyncSession, code: str, user_agent: str):
+        token_resp = await self.yandex_http_client.get_token(code=code)
+        client_info = await self.yandex_http_client.login(token_resp.access_token)
+
+        data = LoginUserViaExternalProviderSchema.model_validate({
+            "id": client_info.id,
+            "email": client_info.default_email,
+            "first_name": client_info.first_name,
+            "last_name": client_info.last_name,
+            "gender": client_info.sex,
+            "birthdate": client_info.birthday,
+        })
+
+        account = await self.account_repository.login_via_external_provider(
+            session=session,
+            provider_id=ExternalAuthProviderEnum.YANDEX.value,
+            data=data
+        )
+
+        await self.account_repository.create_login_history(
+            session=session, account=account, user_agent=user_agent
+        )
+
+        return UserAccountSchema.model_validate(account, from_attributes=True)
+
 
 @lru_cache(maxsize=1)
 def get_account_service(
     account_repository: PostgresUserAccountRepository,
+    yandex_http_client: YandexHTTPClient
 ):
-    return UserAccountService(account_repository=account_repository)
+    return UserAccountService(account_repository=account_repository, yandex_http_client=yandex_http_client)
