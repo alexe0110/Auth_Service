@@ -11,7 +11,7 @@ class TestRegisterAccount:
     @pytest.mark.parametrize(("email", "password"), [("test_email@yandex.ru", "qwerty")])
     def test_register_account(self, client: TestClient, email, password):
         result = client.post(
-            "/auth/api/v1/account/register",
+            "/api/v1/account/register",
             json={
                 "email": "mymail@yandex.ru",
                 "password": "qwerty",
@@ -34,7 +34,7 @@ class TestRegisterAccount:
     @pytest.mark.parametrize("email", ["test_email@yandex.ru"])
     def test_register_already_exist_email(self, client: TestClient, email):
         result = client.post(
-            "/auth/api/v1/account/register",
+            "/api/v1/account/register",
             json={
                 "email": email,
                 "password": "qwerty",
@@ -57,21 +57,21 @@ class TestChangeCredentials:
         new_email = "new_email@ya.ru"
 
         client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": password,
             },
         )
 
-        result = client.patch("/auth/api/v1/account/credentials", json={"email": new_email})
+        result = client.patch("/api/v1/account/credentials", json={"email": new_email})
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
         assert result_dict.get("email") == new_email
 
         auth_result = client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": new_email,
                 "password": password,
@@ -90,18 +90,18 @@ class TestChangeCredentials:
         new_password = "new_password"
 
         client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": password,
             },
         )
 
-        result = client.patch("/auth/api/v1/account/credentials", json={"password": new_password})
+        result = client.patch("/api/v1/account/credentials", json={"password": new_password})
         assert result.status_code == HTTPStatus.OK
 
         auth_result = client.post(
-            "/auth/api/v1/account/login",
+            "/api/v1/account/login",
             json={
                 "email": email,
                 "password": new_password,

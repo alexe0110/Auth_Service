@@ -15,7 +15,7 @@ class TestGetRole:
         ],
     )
     def test_get_role_by_id(self, client: TestClient, role_id, name):
-        result = client.get(f"/auth/api/v1/role/{role_id}")
+        result = client.get(f"/api/v1/role/{role_id}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -23,14 +23,14 @@ class TestGetRole:
         assert result_dict.get("name") == name
 
     def test_get_not_exist_role(self, client: TestClient):
-        result = client.get(f"/auth/api/v1/role/{uuid.uuid4()}")
+        result = client.get(f"/api/v1/role/{uuid.uuid4()}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.NOT_FOUND
         assert result_dict.get("detail") == "Role not found"
 
     def test_get_all_roles(self, client: TestClient):
-        result = client.get("/auth/api/v1/role/")
+        result = client.get("/api/v1/role/")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -39,7 +39,7 @@ class TestGetRole:
 
 class TestCreateRole:
     def test_create_role(self, client: TestClient):
-        result = client.post("/auth/api/v1/role/", json={"name": "Manager"})
+        result = client.post("/api/v1/role/", json={"name": "Manager"})
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -47,7 +47,7 @@ class TestCreateRole:
         assert result_dict.get("name") == "Manager"
 
     def test_create_exist_role(self, client: TestClient):
-        result = client.post("/auth/api/v1/role/", json={"name": "ADMIN"})
+        result = client.post("/api/v1/role/", json={"name": "ADMIN"})
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.BAD_REQUEST
@@ -58,7 +58,7 @@ class TestUpdateRole:
     def test_update_role(self, client: TestClient, add_role):
         created_role_id = add_role
 
-        result = client.patch(f"/auth/api/v1/role/{created_role_id}", json={"new_name": "Reader"})
+        result = client.patch(f"/api/v1/role/{created_role_id}", json={"new_name": "Reader"})
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -71,7 +71,7 @@ class TestDeleteRole:
     def test_delete_role(self, client: TestClient, add_role):
         created_role_id = add_role
 
-        result = client.delete(f"/auth/api/v1/role/{created_role_id}")
+        result = client.delete(f"/api/v1/role/{created_role_id}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.OK
@@ -80,7 +80,7 @@ class TestDeleteRole:
     def test_delete_not_exist(self, client: TestClient):
         not_created_role_id = uuid.uuid4()
 
-        result = client.delete(f"/auth/api/v1/role/{not_created_role_id}")
+        result = client.delete(f"/api/v1/role/{not_created_role_id}")
         result_dict = result.json()
 
         assert result.status_code == HTTPStatus.NOT_FOUND

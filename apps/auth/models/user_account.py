@@ -13,6 +13,7 @@ class UserAccount(Base):
     id: Mapped[UUID] = mapped_column(
         primary_key=True, nullable=False, unique=True, server_default=sa.text("gen_random_uuid()")
     )
+    email: Mapped[str] = mapped_column(nullable=False, unique=True)
     first_name: Mapped[str] = mapped_column(nullable=False)
     last_name: Mapped[str] = mapped_column(nullable=False)
     middle_name: Mapped[str] = mapped_column(nullable=True)
@@ -23,5 +24,6 @@ class UserAccount(Base):
     updated_at: Mapped[datetime] = mapped_column(nullable=False, server_default=sa.text("timezone('utc', now())"))
 
     internal_auth_data: Mapped["UserAuth"] = relationship(back_populates="account")  # type: ignore # noqa: F821
+    external_auth_data: Mapped[list["UserAuthExternal"]] = relationship(back_populates="account")  # type: ignore # noqa: F821
     roles: Mapped[list["Roles"]] = relationship(secondary="user_roles")  # type: ignore # noqa: F821
     login_history: Mapped[list["UserLoginHistory"]] = relationship(back_populates="account")  # type: ignore # noqa: F821

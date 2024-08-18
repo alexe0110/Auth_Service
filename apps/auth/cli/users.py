@@ -31,6 +31,7 @@ def add_superuser(email: str, password: str, first_name: str, last_name: str, mi
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt).decode()
 
         acc = UserAccount(
+            email=email,
             first_name=first_name,
             last_name=last_name,
             middle_name=middle_name,

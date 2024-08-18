@@ -1,7 +1,7 @@
 import abc
 from collections.abc import Sequence
 from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import bcrypt
 import sqlalchemy as sa
@@ -9,17 +9,27 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 from db.postgres import AsyncSession
-from models import Role, Roles, UserAccount, UserAuth, UserLoginHistory, UserRoles
+from models import (
+    ExternalAuthProvider,
+    Role,
+    Roles,
+    UserAccount,
+    UserAuth,
+    UserAuthExternal,
+    UserLoginHistory,
+    UserRoles,
+)
 from models.exceptions import (
     InvalidCredentialsError,
     RoleNotExistError,
+    UnknownExternalProviderError,
     UserAlreadyExistError,
     UserNotExistsError,
     UserNotRegisteredError,
     UserRoleAlreadyExistError,
     UserRoleNotExistError,
 )
-from schemas.user_account import LoginUserIn, RegisterUserIn
+from schemas.user_account import LoginUserIn, LoginUserViaExternalProviderSchema, RegisterUserIn
 
 
 class UserAccountRepository(abc.ABC):
@@ -63,9 +73,15 @@ class UserAccountRepository(abc.ABC):
     ) -> Sequence[UserLoginHistory]:
         raise NotImplementedError
 
+    @abc.abstractmethod
+    async def login_via_external_provider(
+        self, session: AsyncSession, provider_id: str, data: LoginUserViaExternalProviderSchema
+    ) -> UserAccount:
+        raise NotImplementedError
+
 
 class PostgresUserAccountRepository(UserAccountRepository):
-    def _hash_password(self, password):
+    def _hash_password(self, password: str):
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(password.encode("utf-8"), salt).decode()
 
@@ -74,6 +90,7 @@ class PostgresUserAccountRepository(UserAccountRepository):
         account_roles = await session.scalars(sa.select(Roles).where(Roles.id == Role.PORTAL_USER.value))
 
         account = UserAccount(
+            email=data.email,
             first_name=data.first_name,
             last_name=data.last_name,
             middle_name=data.middle_name,
@@ -121,6 +138,7 @@ class PostgresUserAccountRepository(UserAccountRepository):
             account.internal_auth_data.password = self._hash_password(password)
         if email:
             account.internal_auth_data.email = email
+            account.email = email
 
         account.internal_auth_data.updated_at = datetime.utcnow()
 
@@ -194,3 +212,63 @@ class PostgresUserAccountRepository(UserAccountRepository):
             .limit(limit)
         )
         return res.fetchall()
+
+    async def login_via_external_provider(
+        self, session: AsyncSession, provider_id: str, data: LoginUserViaExternalProviderSchema
+    ):
+        external_provider = await session.scalar(
+            sa.select(ExternalAuthProvider).where(ExternalAuthProvider.id == provider_id)
+        )
+
+        if not external_provider:
+            raise UnknownExternalProviderError
+
+        account = await session.scalar(
+            sa.select(UserAccount).where(UserAccount.email == data.email)
+            .options(joinedload(UserAccount.roles), joinedload(UserAccount.external_auth_data))
+        )
+
+        has_external_auth_entity = False
+        for entity in account.external_auth_data:  # type: ignore
+            if entity.external_user_id == data.id and entity.external_provider_id == external_provider.id:
+                has_external_auth_entity = True
+                break
+
+        if has_external_auth_entity:
+            return account
+
+        if account:
+            account.external_auth_data = UserAuthExternal(
+                external_user_id=data.id,
+                external_provider_id=external_provider.id
+            )
+
+            session.add(account)
+            await session.flush()
+
+            return account
+
+        account_roles = await session.scalars(sa.select(Roles).where(Roles.id == Role.PORTAL_USER.value))
+
+        account = UserAccount(
+            email=data.email,
+            first_name=data.first_name,
+            last_name=data.last_name,
+            middle_name=data.middle_name,
+            gender=data.gender,
+            birthdate=data.birthdate,
+            internal_auth_data=UserAuth(
+                email=data.email,
+                password=self._hash_password(str(uuid4()))
+            ),
+            external_auth_data=UserAuthExternal(
+                external_user_id=data.id,
+                external_provider_id=external_provider.id
+            ),
+            roles=account_roles.all(),
+        )
+
+        session.add(account)
+        await session.flush()
+
+        return account
