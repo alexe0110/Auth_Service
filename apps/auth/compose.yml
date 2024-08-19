@@ -2,6 +2,8 @@ services:
   auth-postgres:
     image: postgres:16.1
     restart: always
+    ports:
+      - "5433:5432"
     environment:
       - POSTGRES_DB=ms-auth
       - POSTGRES_USER=ms-auth-user
