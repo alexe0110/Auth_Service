@@ -2,7 +2,7 @@ from functools import lru_cache
 from uuid import UUID
 
 from db.postgres import AsyncSession
-from models.user_auth import ExternalAuthProviderEnum
+from lib.oauth import get_provider_client
 from repositories.account import UserAccountRepository
 from schemas.user_account import (
     ChangeCredentialsIn,
@@ -14,13 +14,12 @@ from schemas.user_account import (
 )
 from schemas.user_roles import UserRole
 
-from .dependencies import PostgresUserAccountRepository, YandexHTTPClient
+from .dependencies import PostgresUserAccountRepository
 
 
 class UserAccountService:
-    def __init__(self, account_repository: UserAccountRepository, yandex_http_client: YandexHTTPClient) -> None:
+    def __init__(self, account_repository: UserAccountRepository) -> None:
         self.account_repository = account_repository
-        self.yandex_http_client = yandex_http_client
 
     async def register(self, session: AsyncSession, data: RegisterUserIn, user_agent: str) -> UserAccountSchema:
         account = await self.account_repository.create_account(session=session, data=data)
@@ -76,22 +75,30 @@ class UserAccountService:
             for item in login_history
         ]
 
-    async def login_via_yandex(self, session: AsyncSession, code: str, user_agent: str):
-        token_resp = await self.yandex_http_client.get_token(code=code)
-        client_info = await self.yandex_http_client.login(token_resp.access_token)
+    async def login_via_external_provider(
+        self,
+        session: AsyncSession,
+        provider: str,
+        code: str,
+        user_agent: str
+    ):
+        provider_client = get_provider_client(provider_name=provider)
+        access_token = await provider_client.get_token(code=code)
+        client_info = await provider_client.login(token=access_token)
 
         data = LoginUserViaExternalProviderSchema.model_validate({
             "id": client_info.id,
-            "email": client_info.default_email,
+            "email": client_info.email,
             "first_name": client_info.first_name,
             "last_name": client_info.last_name,
-            "gender": client_info.sex,
-            "birthdate": client_info.birthday,
+            "middle_name": client_info.middle_name,
+            "gender": client_info.gender,
+            "birthdate": client_info.birthdate,
         })
 
         account = await self.account_repository.login_via_external_provider(
             session=session,
-            provider_id=ExternalAuthProviderEnum.YANDEX.value,
+            provider_id=provider_client.provider_id,
             data=data
         )
 
@@ -105,6 +112,5 @@ class UserAccountService:
 @lru_cache(maxsize=1)
 def get_account_service(
     account_repository: PostgresUserAccountRepository,
-    yandex_http_client: YandexHTTPClient
 ):
-    return UserAccountService(account_repository=account_repository, yandex_http_client=yandex_http_client)
+    return UserAccountService(account_repository=account_repository)

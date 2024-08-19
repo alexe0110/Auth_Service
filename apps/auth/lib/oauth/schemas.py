@@ -1,16 +1,20 @@
+from datetime import date
 from typing import Literal
 
-import pydantic
+from pydantic import BaseModel
 
 
-class YandexTokenData(pydantic.BaseModel):
-    access_token: str
-    expires_in: int
-    refresh_token: str
-    token_type: str
+class UserInfo(BaseModel):
+    id: str
+    email: str
+    first_name: str
+    last_name: str
+    middle_name: str | None = None
+    gender: Literal["male", "female"]
+    birthdate: date
 
 
-class YandexUserInfo(pydantic.BaseModel):
+class YandexUserInfo(BaseModel):
     id: str
     login: str
     client_id: str
