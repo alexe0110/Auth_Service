@@ -2,12 +2,8 @@ services:
   auth-postgres:
     image: postgres:16.1
     restart: always
-    ports:
-      - "5433:5432"
-    environment:
-      - POSTGRES_DB=ms-auth
-      - POSTGRES_USER=ms-auth-user
-      - POSTGRES_PASSWORD=ms-auth-password
+    env_file:
+      - .env.db
     volumes:
       - auth-postgres-data:/var/lib/postgresql/data
 
@@ -27,10 +23,8 @@ services:
     restart: always
     profiles:
       - test
-    environment:
-      - POSTGRES_DB=ms-auth
-      - POSTGRES_USER=ms-auth-user
-      - POSTGRES_PASSWORD=ms-auth-password
+    env_file:
+      - .env.db
     ports:
       - "5434:5432"
 

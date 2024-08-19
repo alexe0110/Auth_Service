@@ -5,6 +5,7 @@ local.env
 .env
 .env.local
 .env.*.local
+.env.db
 
 # Editor directories and files
 .idea
