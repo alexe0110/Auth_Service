@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import PostgresDsn, RedisDsn, field_validator
+from pydantic import Field, PostgresDsn, RedisDsn, field_validator
 from pydantic_core.core_schema import FieldValidationInfo
 from pydantic_settings import BaseSettings as PydanticBaseSettings
 from pydantic_settings import SettingsConfigDict
@@ -27,6 +27,8 @@ class APISettings(BaseSettings):
     YANDEX_OAUTH_CLIENT_SECRET: str
 
     RPM_LIMIT: int
+
+    DEBUG: bool = Field(alias="DEBUG")
 
     class Config:
         env_prefix = "API_"
