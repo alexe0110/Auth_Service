@@ -1,0 +1,18 @@
+include:
+  - apps/auth/compose.yml
+  - apps/movies/compose.yml
+  - apps/etl/compose.yml
+  - apps/admin/compose.yml
+
+services:
+  nginx:
+    image: nginx:1.25.5
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./apps/configs:/etc/nginx/conf.d:ro
+      - static_volume:/data/static
+    depends_on:
+      - movies
+      - admin_panel

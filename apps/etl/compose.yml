@@ -1,0 +1,14 @@
+services:
+  etl:
+    build:
+      context: .
+    env_file: ../.env
+    depends_on:
+      - postgres
+      - elastic
+    volumes:
+      - etl_data:/usr/share/etl/data
+
+volumes:
+  etl_data:
+    driver: local
